@@ -68,7 +68,7 @@
 #define MODULUS(a,b) (b)?(a % b):0
 
 #define TAKE_LOCK(lck) \
-		{int _rval; do {_rval = rte_atomic16_cmpset(lck, 0, 1);} while (unlikely(_rval == 0));}
+        {int _rval; do {_rval = rte_atomic16_cmpset(lck, 0, 1);} while (unlikely(_rval == 0));}
 
 #define RELEASE_LOCK(lck) \
         *(lck) = 0;
@@ -123,8 +123,8 @@ typedef struct _dpdk_device
     pthread_t tid;
 
 #ifdef DEBUG_SHOW_LOCAL_STATISTICS
-	uint64_t rx_pkts[MAX_RX_QUEUES];
-	uint64_t tx_pkts[MAX_TX_QUEUES];
+    uint64_t rx_pkts[MAX_RX_QUEUES];
+    uint64_t tx_pkts[MAX_TX_QUEUES];
 #endif
 } DpdkDevice;
 
@@ -132,13 +132,13 @@ static DpdkDevice *dpdk_devices[MAX_DPDK_DEVICES];
 static int num_dpdk_devices;
 
 typedef struct _dpdk_link {
-	DpdkDevice *dev;
-	uint16_t rx_queue;
-	uint16_t tx_queue;
+    DpdkDevice *dev;
+    uint16_t rx_queue;
+    uint16_t tx_queue;
 
 #ifdef DEBUG_SHOW_LOCAL_STATISTICS
-	uint64_t rx_pkts;
-	uint64_t tx_pkts;
+    uint64_t rx_pkts;
+    uint64_t tx_pkts;
 #endif
 } DpdkLink;
 
@@ -221,13 +221,13 @@ static int start_device(Dpdk_Interface_t *dpdk_intf, DpdkDevice *device)
                 dpdk_intf->descr, port, device->num_rx_queues, device->num_tx_queues);
     }
 
-	rx_queues = RTE_MIN(device->num_rx_queues, device->max_rx_queues);
-	tx_queues = RTE_MIN(device->num_tx_queues, device->max_tx_queues);
+    rx_queues = RTE_MIN(device->num_rx_queues, device->max_rx_queues);
+    tx_queues = RTE_MIN(device->num_tx_queues, device->max_tx_queues);
 
-	if (rx_queues <= 1)
-		port_conf.rxmode.mq_mode = ETH_MQ_RX_NONE;
+    if (rx_queues <= 1)
+        port_conf.rxmode.mq_mode = ETH_MQ_RX_NONE;
 
-	ret = rte_eth_dev_configure(port, rx_queues, tx_queues, &port_conf);
+    ret = rte_eth_dev_configure(port, rx_queues, tx_queues, &port_conf);
     if (ret != 0)
     {
         DPE(dpdk_intf->errbuf, "%s: Couldn't configure port %d\n", __FUNCTION__, port);
@@ -236,8 +236,8 @@ static int start_device(Dpdk_Interface_t *dpdk_intf, DpdkDevice *device)
 
     for (queue = 0; queue < rx_queues; queue++)
     {
-    	if (dpdk_intf->debug)
-    		printf("Setup DPDK Rx queue %i on port %i\n", queue, port);
+        if (dpdk_intf->debug)
+            printf("Setup DPDK Rx queue %i on port %i\n", queue, port);
         ret = rte_eth_rx_queue_setup(port, queue, RX_RING_SIZE,
                 rte_eth_dev_socket_id(port),
                 NULL, device->mbuf_pool[queue]);
@@ -250,8 +250,8 @@ static int start_device(Dpdk_Interface_t *dpdk_intf, DpdkDevice *device)
 
     for (queue = 0; queue < tx_queues; queue++)
     {
-    	if (dpdk_intf->debug)
-    	    printf("Setup DPDK Tx queue %i on port %i\n", queue, port);
+        if (dpdk_intf->debug)
+            printf("Setup DPDK Tx queue %i on port %i\n", queue, port);
         ret = rte_eth_tx_queue_setup(port, queue, TX_RING_SIZE,
                 rte_eth_dev_socket_id(port),
                 NULL);
@@ -273,20 +273,20 @@ static int start_device(Dpdk_Interface_t *dpdk_intf, DpdkDevice *device)
         rte_eth_promiscuous_enable(port);
 
     {
-    	struct rte_eth_hash_filter_info info;
-    	int ret;
-    	if (rte_eth_dev_filter_supported(port, RTE_ETH_FILTER_HASH) == 0) {
+        struct rte_eth_hash_filter_info info;
+        int ret;
+        if (rte_eth_dev_filter_supported(port, RTE_ETH_FILTER_HASH) == 0) {
 
-			memset(&info, 0, sizeof(info));
-			info.info_type = RTE_ETH_HASH_FILTER_SYM_HASH_ENA_PER_PORT;
-			info.info.enable = 1;
-			printf("Set syn hash filter on port %i\n", port);
-			ret = rte_eth_dev_filter_ctrl(port, RTE_ETH_FILTER_HASH, RTE_ETH_FILTER_SET, &info);
-			if (ret < 0) {
-				printf("Cannot set symmetric hash enable per port on "
-							"port %u\n", port);
-			}
-    	}
+            memset(&info, 0, sizeof(info));
+            info.info_type = RTE_ETH_HASH_FILTER_SYM_HASH_ENA_PER_PORT;
+            info.info.enable = 1;
+            printf("Set syn hash filter on port %i\n", port);
+            ret = rte_eth_dev_filter_ctrl(port, RTE_ETH_FILTER_HASH, RTE_ETH_FILTER_SET, &info);
+            if (ret < 0) {
+                printf("Cannot set symmetric hash enable per port on "
+                            "port %u\n", port);
+            }
+        }
     }
 
     device->flags |= DPDKINST_STARTED;
@@ -300,7 +300,7 @@ err:
 
 static void destroy_device(DpdkDevice **device)
 {
-	if (!device) return;
+    if (!device) return;
     if (*device)
     {
         if (--(*device)->ref_cnt == 0)
@@ -309,69 +309,69 @@ static void destroy_device(DpdkDevice **device)
             rte_eth_dev_stop((*device)->port);
             rte_eth_dev_close((*device)->port);
             free(*device);
-        	*device = NULL;
+            *device = NULL;
         }
     }
 }
 
 /* NOTE this function must be mutex protected */
 static DpdkDevice *create_rx_device(const char *port_name, uint16_t *rx_queue, char *errbuf,
-		size_t errlen, int queues, int debug)
+        size_t errlen, int queues, int debug)
 {
     DpdkDevice *device;
     int i, port;
     char poolname[64];
     static int index = 0;
-	struct rte_eth_dev_info inf;
+    struct rte_eth_dev_info inf;
 
-	*rx_queue = 0;
-	if (strncmp(port_name, "dpdk", 4) != 0 || sscanf(&port_name[4], "%d", &port) != 1)
-	{
-		snprintf(errbuf, errlen, "%s: Invalid interface specification: '%s'!", __FUNCTION__, port_name);
-		return NULL;
-	}
+    *rx_queue = 0;
+    if (strncmp(port_name, "dpdk", 4) != 0 || sscanf(&port_name[4], "%d", &port) != 1)
+    {
+        snprintf(errbuf, errlen, "%s: Invalid interface specification: '%s'!", __FUNCTION__, port_name);
+        return NULL;
+    }
 
 
     for (i = 0; i < num_dpdk_devices; i++)
     {
-    	if (port == dpdk_devices[i]->port)
-    	{
+        if (port == dpdk_devices[i]->port)
+        {
 #ifndef USE_RX_TX_LOCKING
-    		if (dpdk_devices[i]->num_rx_queues >= dpdk_devices[i]->max_rx_queues)
-    			return NULL;
+            if (dpdk_devices[i]->num_rx_queues >= dpdk_devices[i]->max_rx_queues)
+                return NULL;
 #endif
-    		// dpdk device already created - add a queue
-    		if (debug)
-    	        printf("DPDK - device found with port = %i, number of queues %i\n",
-    		    		port, dpdk_devices[i]->num_rx_queues + 1);
+            // dpdk device already created - add a queue
+            if (debug)
+                printf("DPDK - device found with port = %i, number of queues %i\n",
+                        port, dpdk_devices[i]->num_rx_queues + 1);
 
-		    if (dpdk_devices[i]->flags & DPDKINST_STARTED)
-		    {
-		    	printf("INTERNAL ERROR - device created too late!\n");
-		    	return NULL;
-		    }
-			*rx_queue =  MODULUS(dpdk_devices[i]->num_rx_queues,dpdk_devices[i]->max_rx_queues);
+            if (dpdk_devices[i]->flags & DPDKINST_STARTED)
+            {
+                printf("INTERNAL ERROR - device created too late!\n");
+                return NULL;
+            }
+            *rx_queue =  MODULUS(dpdk_devices[i]->num_rx_queues,dpdk_devices[i]->max_rx_queues);
 
-			dpdk_devices[i]->num_rx_queues++;
-			dpdk_devices[i]->ref_cnt++;
+            dpdk_devices[i]->num_rx_queues++;
+            dpdk_devices[i]->ref_cnt++;
 
 
-			if (dpdk_devices[i]->mbuf_pool[*rx_queue] == NULL)
-			{
-				snprintf(poolname, sizeof(poolname), "MBUF_POOL%d:%d", port, *rx_queue);
-				dpdk_devices[i]->mbuf_pool[*rx_queue] = rte_pktmbuf_pool_create(poolname,
-						NUM_MBUFS / dpdk_devices[i]->max_rx_queues,
-						MBUF_CACHE_SIZE, 0, MBUF_PKT_SIZE, rte_socket_id());
-				if (dpdk_devices[i]->mbuf_pool[*rx_queue] == NULL)
-				{
-					snprintf(errbuf, errlen, "%s: Couldn't create mbuf pool!\n", __FUNCTION__);
-					goto err;
-				}
-			}
+            if (dpdk_devices[i]->mbuf_pool[*rx_queue] == NULL)
+            {
+                snprintf(poolname, sizeof(poolname), "MBUF_POOL%d:%d", port, *rx_queue);
+                dpdk_devices[i]->mbuf_pool[*rx_queue] = rte_pktmbuf_pool_create(poolname,
+                        NUM_MBUFS / dpdk_devices[i]->max_rx_queues,
+                        MBUF_CACHE_SIZE, 0, MBUF_PKT_SIZE, rte_socket_id());
+                if (dpdk_devices[i]->mbuf_pool[*rx_queue] == NULL)
+                {
+                    snprintf(errbuf, errlen, "%s: Couldn't create mbuf pool!\n", __FUNCTION__);
+                    goto err;
+                }
+            }
 
-			return dpdk_devices[i];
-    	}
-	}
+            return dpdk_devices[i];
+        }
+    }
 
     /* New DPDK port device needed */
     device = calloc(1, sizeof(DpdkDevice));
@@ -386,25 +386,25 @@ static DpdkDevice *create_rx_device(const char *port_name, uint16_t *rx_queue, c
     device->port = port;
     device->ref_cnt = 1;
 
-	rte_eth_dev_info_get(port, &inf);
-	if (debug)
-	{
-		printf("driver name: %s\n", inf.driver_name);
-		printf("max Rx pktlen: %i\n", inf.max_rx_pktlen);
-		printf("Max Rx queues: %i\n", inf.max_rx_queues);
-		printf("Max Tx queues: %i\n", inf.max_tx_queues);
-		printf("Daq Port ID    %i\n", device->index);
-	}
+    rte_eth_dev_info_get(port, &inf);
+    if (debug)
+    {
+        printf("driver name: %s\n", inf.driver_name);
+        printf("max Rx pktlen: %i\n", inf.max_rx_pktlen);
+        printf("Max Rx queues: %i\n", inf.max_rx_queues);
+        printf("Max Tx queues: %i\n", inf.max_tx_queues);
+        printf("Daq Port ID    %i\n", device->index);
+    }
 
-	if (queues >= 1)
-	{
-	    inf.max_rx_queues = RTE_MIN(inf.max_rx_queues, queues);
+    if (queues >= 1)
+    {
+        inf.max_rx_queues = RTE_MIN(inf.max_rx_queues, queues);
         inf.max_tx_queues = RTE_MIN(inf.max_tx_queues, queues);
-	}
+    }
 
     device->max_rx_queues = RTE_MIN(MAX_RX_QUEUES, inf.max_rx_queues);
     device->max_tx_queues = RTE_MIN(MAX_TX_QUEUES, inf.max_tx_queues);
-	device->num_rx_queues = 1;
+    device->num_rx_queues = 1;
 
     snprintf(poolname, sizeof(poolname), "MBUF_POOL%d:0", port);
     device->mbuf_pool[0] = rte_pktmbuf_pool_create(poolname, NUM_MBUFS / device->max_rx_queues,
@@ -416,14 +416,14 @@ static DpdkDevice *create_rx_device(const char *port_name, uint16_t *rx_queue, c
     }
 
     if (num_dpdk_devices < MAX_DPDK_DEVICES)
-    	dpdk_devices[num_dpdk_devices++] = device;
+        dpdk_devices[num_dpdk_devices++] = device;
     else
-    	goto err;
+        goto err;
 
     if (debug)
       printf("DPDK - device created on port = %i\n", port);
 
- 	*rx_queue = 0; // always first queue
+    *rx_queue = 0; // always first queue
     return device;
 
 err:
@@ -434,24 +434,24 @@ err:
 
 static int create_bridge(Dpdk_Interface_t *dpdk_intf)
 {
-	int i;
+    int i;
 
-	/* Add Tx functionality for inline on both devices */
-	for (i = 0; i < LINK_NUM_DEVS; i++)
-	{
+    /* Add Tx functionality for inline on both devices */
+    for (i = 0; i < LINK_NUM_DEVS; i++)
+    {
 #ifndef USE_RX_TX_LOCKING
-		if (dpdk_intf->link[i].dev->num_tx_queues >= dpdk_intf->link[i].dev->max_tx_queues)
-			return DAQ_ERROR_NODEV;
+        if (dpdk_intf->link[i].dev->num_tx_queues >= dpdk_intf->link[i].dev->max_tx_queues)
+            return DAQ_ERROR_NODEV;
 #endif
-		dpdk_intf->link[i].tx_queue = MODULUS(dpdk_intf->link[i].dev->num_tx_queues, dpdk_intf->link[i].dev->max_tx_queues);
-		dpdk_intf->link[i].dev->num_tx_queues++;
-	}
-	if (dpdk_intf->debug)
-	{
-		printf("Created bridge between port %i and port %i, dev rx queue %i, dev tx queue %i, peer rx queue %i, peer tx queue %i\n",
-				dpdk_intf->link[DEV_IDX].dev->port, dpdk_intf->link[PEER_IDX].dev->port, dpdk_intf->link[DEV_IDX].rx_queue,
-				dpdk_intf->link[DEV_IDX].tx_queue, dpdk_intf->link[PEER_IDX].rx_queue, dpdk_intf->link[PEER_IDX].tx_queue);
-	}
+        dpdk_intf->link[i].tx_queue = MODULUS(dpdk_intf->link[i].dev->num_tx_queues, dpdk_intf->link[i].dev->max_tx_queues);
+        dpdk_intf->link[i].dev->num_tx_queues++;
+    }
+    if (dpdk_intf->debug)
+    {
+        printf("Created bridge between port %i and port %i, dev rx queue %i, dev tx queue %i, peer rx queue %i, peer tx queue %i\n",
+                dpdk_intf->link[DEV_IDX].dev->port, dpdk_intf->link[PEER_IDX].dev->port, dpdk_intf->link[DEV_IDX].rx_queue,
+                dpdk_intf->link[DEV_IDX].tx_queue, dpdk_intf->link[PEER_IDX].rx_queue, dpdk_intf->link[PEER_IDX].tx_queue);
+    }
 
     return DAQ_SUCCESS;
 }
@@ -460,19 +460,19 @@ static int create_bridge(Dpdk_Interface_t *dpdk_intf)
 
 static int dpdk_close(Dpdk_Interface_t *dpdk_intf)
 {
-	int i;
+    int i;
     if (!dpdk_intf)
     {
         return -1;
     }
 
-	for (i = 0; i < LINK_NUM_DEVS; i++)
-	{
-		if (dpdk_intf->link[i].dev)
-		{
-			destroy_device(&dpdk_intf->link[i].dev);
-		}
-	}
+    for (i = 0; i < LINK_NUM_DEVS; i++)
+    {
+        if (dpdk_intf->link[i].dev)
+        {
+            destroy_device(&dpdk_intf->link[i].dev);
+        }
+    }
 
     sfbpf_freecode(&dpdk_intf->fcode);
     dpdk_intf->state = DAQ_STATE_STOPPED;
@@ -512,11 +512,11 @@ static int dpdk_daq_initialize(const DAQ_Config_t *config, void **ctxt_ptr, char
     static char interface_name[1024] = "";
     static uint16_t dev_idx = 0;
     static int debug = 0;
-	static int first = 1, ports = 0, dpdk_queues = 1;
-	static volatile uint32_t threads_in = 0;
+    static int first = 1, ports = 0, dpdk_queues = 1;
+    static volatile uint32_t threads_in = 0;
 
-	threads_in++;
-	TAKE_LOCK(&port_lock[MAX_PORTS]);
+    threads_in++;
+    TAKE_LOCK(&port_lock[MAX_PORTS]);
 
     dpdk_intf = calloc(1, sizeof(Dpdk_Interface_t));
     if (!dpdk_intf)
@@ -556,45 +556,49 @@ static int dpdk_daq_initialize(const DAQ_Config_t *config, void **ctxt_ptr, char
 
 
     if (first) {
-		/* Import the DPDK arguments and other configuration values. */
-		for (entry = config->values; entry; entry = entry->next)
-		{
-			if (!strcmp(entry->key, "dpdk_args"))
-				dpdk_args = entry->value;
-			else
-			{
-				if (!strcmp(entry->key, "debug"))
-					debug = 1;
-				else
-				{
-					if (!strcmp(entry->key, "dpdk_queues"))
-					{
-						dpdk_queues = atoi(entry->value);
-						if (dpdk_queues < 1) dpdk_queues = 1;
-					}
-				}
-			}
-		}
+        /* Import the DPDK arguments and other configuration values. */
+        for (entry = config->values; entry; entry = entry->next)
+        {
+            if (!strcmp(entry->key, "dpdk_args"))
+                dpdk_args = entry->value;
+            else
+            {
+                if (!strcmp(entry->key, "debug"))
+                    debug = 1;
+                else
+                {
+                    if (!strcmp(entry->key, "dpdk_queues"))
+                    {
+                        dpdk_queues = atoi(entry->value);
+                        if (dpdk_queues < 1) dpdk_queues = 1;
+                    }
+                }
+            }
+        }
 
-		argv[0] = argv0;
-		argc = parse_args(dpdk_args, &argv[1]) + 1;
-		optind = 1;
+        argv[0] = argv0;
+        for (int ii = 0; ii < argc; ii++) {
+            printf("argv[%d] = %s \n", ii, argv[ii]);
+        }
+        argc = parse_args(dpdk_args, &argv[1]) + 1;
+        optind = 1;
 
-		ret = rte_eal_init(argc, argv);
-		if (ret < 0)
-		{
-			snprintf(errbuf, errlen, "%s: Invalid EAL arguments!\n", __FUNCTION__);
-			rval = DAQ_ERROR_INVAL;
-			goto err;
-		}
-	    ports = rte_eth_dev_count();
-	    if (ports == 0)
-	    {
-	        snprintf(errbuf, errlen, "%s: No Ethernet ports!\n", __FUNCTION__);
-	        rval = DAQ_ERROR_NODEV;
-	        goto err;
-	    }
-		first = 0;
+
+        ret = rte_eal_init(argc, argv);
+        if (ret < 0)
+        {
+            snprintf(errbuf, errlen, "%s: Invalid EAL arguments!\n", __FUNCTION__);
+            rval = DAQ_ERROR_INVAL;
+            goto err;
+        }
+        ports = rte_eth_dev_count();
+        if (ports == 0)
+        {
+            snprintf(errbuf, errlen, "%s: No Ethernet ports!\n", __FUNCTION__);
+            rval = DAQ_ERROR_NODEV;
+            goto err;
+        }
+        first = 0;
     }
 
     dev = dpdk_intf->descr;
@@ -625,8 +629,8 @@ static int dpdk_daq_initialize(const DAQ_Config_t *config, void **ctxt_ptr, char
             {
                 if (num_ports == 2)
                 {
-					dpdk_intf->link[PEER_IDX].dev = device;
-					dpdk_intf->link[PEER_IDX].rx_queue = queue;
+                    dpdk_intf->link[PEER_IDX].dev = device;
+                    dpdk_intf->link[PEER_IDX].rx_queue = queue;
 
                     if (create_bridge(dpdk_intf) != DAQ_SUCCESS)
                     {
@@ -644,8 +648,8 @@ static int dpdk_daq_initialize(const DAQ_Config_t *config, void **ctxt_ptr, char
                                 __FUNCTION__, dpdk_intf->descr);
                         goto err;
                     }
-					dpdk_intf->link[DEV_IDX].dev = device;
-					dpdk_intf->link[DEV_IDX].rx_queue = queue;
+                    dpdk_intf->link[DEV_IDX].dev = device;
+                    dpdk_intf->link[DEV_IDX].rx_queue = queue;
                 }
             }
             else
@@ -656,14 +660,14 @@ static int dpdk_daq_initialize(const DAQ_Config_t *config, void **ctxt_ptr, char
                             __FUNCTION__, dpdk_intf->descr);
                     goto err;
                 }
-            	dpdk_intf->link[DEV_IDX].dev = device;
-            	dpdk_intf->link[DEV_IDX].rx_queue = queue;
-            	if (dpdk_intf->link[DEV_IDX].dev->max_tx_queues)
-            	{
-            		dpdk_intf->link[DEV_IDX].dev->num_tx_queues = 1;
-            		dpdk_intf->link[DEV_IDX].tx_queue = 0;
-            	}
-            	break;
+                dpdk_intf->link[DEV_IDX].dev = device;
+                dpdk_intf->link[DEV_IDX].rx_queue = queue;
+                if (dpdk_intf->link[DEV_IDX].dev->max_tx_queues)
+                {
+                    dpdk_intf->link[DEV_IDX].dev->num_tx_queues = 1;
+                    dpdk_intf->link[DEV_IDX].tx_queue = 0;
+                }
+                break;
             }
         }
         else
@@ -745,16 +749,16 @@ static int dpdk_daq_set_filter(void *handle, const char *filter)
 
 static int dpdk_daq_start(void *handle)
 {
-	int i;
+    int i;
     Dpdk_Interface_t *dpdk_intf = (Dpdk_Interface_t *) handle;
-	for (i = 0; i < LINK_NUM_DEVS; i++)
-	{
-		if (dpdk_intf->link[i].dev)
-		{
-			if (start_device(dpdk_intf, dpdk_intf->link[i].dev) != DAQ_SUCCESS)
-				return DAQ_ERROR;
-		}
-	}
+    for (i = 0; i < LINK_NUM_DEVS; i++)
+    {
+        if (dpdk_intf->link[i].dev)
+        {
+            if (start_device(dpdk_intf, dpdk_intf->link[i].dev) != DAQ_SUCCESS)
+                return DAQ_ERROR;
+        }
+    }
     dpdk_daq_reset_stats(handle);
     dpdk_intf->state = DAQ_STATE_STARTED;
     return DAQ_SUCCESS;
@@ -789,28 +793,28 @@ static int dpdk_daq_acquire(void *handle, int cnt, DAQ_Analysis_Func_t callback,
 
 #ifdef DEBUG_SHOW_LOCAL_STATISTICS
     if (dpdk_intf->debug) {
-		TAKE_LOCK(&port_lock[MAX_PORTS]);
-		int n,nn;
-		for (n=0; n<num_dpdk_devices; n++)
-		{
-			printf("Rx[port %i]: ", dpdk_devices[n]->port);
-			for (nn=0; nn < RTE_MIN(dpdk_devices[n]->num_rx_queues, dpdk_devices[n]->max_rx_queues); nn++)
-			{
-				printf("q[%i](%lu), ",nn, dpdk_devices[n]->rx_pkts[nn]);
-			}
-			printf("\nTx[port %i]: ", dpdk_devices[n]->port);
-			for (nn=0; nn < RTE_MIN(dpdk_devices[n]->num_tx_queues, dpdk_devices[n]->max_tx_queues); nn++)
-			{
-				printf("q[%i](%lu), ",nn, dpdk_devices[n]->tx_pkts[nn]);
-			}
-			printf("\n");
-		}
-		{
-			Dpdk_Interface_t *intf = base_intf;
-			int num = 0;
-			while (intf)
-			{
-			    if (intf->link[1].dev) {
+        TAKE_LOCK(&port_lock[MAX_PORTS]);
+        int n,nn;
+        for (n=0; n<num_dpdk_devices; n++)
+        {
+            printf("Rx[port %i]: ", dpdk_devices[n]->port);
+            for (nn=0; nn < RTE_MIN(dpdk_devices[n]->num_rx_queues, dpdk_devices[n]->max_rx_queues); nn++)
+            {
+                printf("q[%i](%lu), ",nn, dpdk_devices[n]->rx_pkts[nn]);
+            }
+            printf("\nTx[port %i]: ", dpdk_devices[n]->port);
+            for (nn=0; nn < RTE_MIN(dpdk_devices[n]->num_tx_queues, dpdk_devices[n]->max_tx_queues); nn++)
+            {
+                printf("q[%i](%lu), ",nn, dpdk_devices[n]->tx_pkts[nn]);
+            }
+            printf("\n");
+        }
+        {
+            Dpdk_Interface_t *intf = base_intf;
+            int num = 0;
+            while (intf)
+            {
+                if (intf->link[1].dev) {
                     printf("Thread[%i] port %i:%i Rx(%lu) -> port %i:%i Tx(%lu)\n", num,
                             intf->link[0].dev->port, intf->link[0].rx_queue, intf->link[0].rx_pkts,
                             intf->link[1].dev->port, intf->link[1].tx_queue, intf->link[1].tx_pkts);
@@ -818,18 +822,18 @@ static int dpdk_daq_acquire(void *handle, int cnt, DAQ_Analysis_Func_t callback,
                     printf("Thread[%i] port %i:%i Rx(%lu) -> port %i:%i Tx(%lu)\n", num,
                             intf->link[1].dev->port, intf->link[1].rx_queue, intf->link[1].rx_pkts,
                             intf->link[0].dev->port, intf->link[0].tx_queue, intf->link[0].tx_pkts);
-			    }
-			    else
-			    {
+                }
+                else
+                {
                     printf("Thread[%i] port %i:%i Rx(%lu)\n", num,
                             intf->link[0].dev->port, intf->link[0].rx_queue, intf->link[0].rx_pkts);
-			    }
-				num++;
-				intf = intf->next;
-			}
-		}
-		printf("\n");
-		RELEASE_LOCK(&port_lock[MAX_PORTS]);
+                }
+                num++;
+                intf = intf->next;
+            }
+        }
+        printf("\n");
+        RELEASE_LOCK(&port_lock[MAX_PORTS]);
     }
 #endif
 
@@ -843,11 +847,11 @@ static int dpdk_daq_acquire(void *handle, int cnt, DAQ_Analysis_Func_t callback,
 
         for (alt = 0; alt < LINK_NUM_DEVS; alt++)
         {
-        	if (link[alt].dev == NULL) continue;
-        	device = link[alt].dev;
-        	dev_queue = link[alt].rx_queue;
-        	peer = link[alt^1].dev;
-        	peer_queue = link[alt^1].tx_queue;
+            if (link[alt].dev == NULL) continue;
+            device = link[alt].dev;
+            dev_queue = link[alt].rx_queue;
+            peer = link[alt^1].dev;
+            peer_queue = link[alt^1].tx_queue;
             tx_num = 0;
             /* Has breakloop() been called? */
             if (dpdk_intf->break_loop)
@@ -888,70 +892,70 @@ static int dpdk_daq_acquire(void *handle, int cnt, DAQ_Analysis_Func_t callback,
 
 #ifdef BATCH_AWARE
                  {
-                	struct rte_mbuf pkt;
-                	struct rte_mbuf_batch_ctrl ctrl;
+                    struct rte_mbuf pkt;
+                    struct rte_mbuf_batch_ctrl ctrl;
 
-					for (i = 0; i < nb_rx; i++)
-					{
-						verdict = DAQ_VERDICT_PASS;
-						bufs[i]->ol_flags |= PKT_BATCH;
-						rte_pktmbuf_adj(bufs[i], sizeof(struct rte_mbuf_batch_pkt_hdr));
-						bufs[i]->batch_size = bufs[i]->pkt_len;
+                    for (i = 0; i < nb_rx; i++)
+                    {
+                        verdict = DAQ_VERDICT_PASS;
+                        bufs[i]->ol_flags |= PKT_BATCH;
+                        rte_pktmbuf_adj(bufs[i], sizeof(struct rte_mbuf_batch_pkt_hdr));
+                        bufs[i]->batch_size = bufs[i]->pkt_len;
 
-	            		if (!rte_pktmbuf_batch_get_first(bufs[i], &pkt, &ctrl)) continue;
-	            		do {
-							data = rte_pktmbuf_mtod(&pkt, void *);
-							len = pkt.data_len;
+                        if (!rte_pktmbuf_batch_get_first(bufs[i], &pkt, &ctrl)) continue;
+                        do {
+                            data = rte_pktmbuf_mtod(&pkt, void *);
+                            len = pkt.data_len;
 
-							dpdk_intf->stats.hw_packets_received++;
+                            dpdk_intf->stats.hw_packets_received++;
 
-							if (dpdk_intf->fcode.bf_insns && sfbpf_filter(dpdk_intf->fcode.bf_insns, data, len, len) == 0)
-							{
-								ignored_one = 1;
-								dpdk_intf->stats.packets_filtered++;
-								continue;
-							}
-							got_one = 1;
+                            if (dpdk_intf->fcode.bf_insns && sfbpf_filter(dpdk_intf->fcode.bf_insns, data, len, len) == 0)
+                            {
+                                ignored_one = 1;
+                                dpdk_intf->stats.packets_filtered++;
+                                continue;
+                            }
+                            got_one = 1;
 
-							daqhdr.ts = ts;
-							daqhdr.caplen = len;
-							daqhdr.pktlen = len;
-							daqhdr.ingress_index = device->index;
-							daqhdr.egress_index = peer ? peer->index : DAQ_PKTHDR_UNKNOWN;
-							daqhdr.ingress_group = DAQ_PKTHDR_UNKNOWN;
-							daqhdr.egress_group = DAQ_PKTHDR_UNKNOWN;
-							daqhdr.flags = 0;
-							daqhdr.opaque = 0;
-							daqhdr.priv_ptr = NULL;
-							daqhdr.address_space_id = 0;
+                            daqhdr.ts = ts;
+                            daqhdr.caplen = len;
+                            daqhdr.pktlen = len;
+                            daqhdr.ingress_index = device->index;
+                            daqhdr.egress_index = peer ? peer->index : DAQ_PKTHDR_UNKNOWN;
+                            daqhdr.ingress_group = DAQ_PKTHDR_UNKNOWN;
+                            daqhdr.egress_group = DAQ_PKTHDR_UNKNOWN;
+                            daqhdr.flags = 0;
+                            daqhdr.opaque = 0;
+                            daqhdr.priv_ptr = NULL;
+                            daqhdr.address_space_id = 0;
 
-							if (callback)
-							{
-								verdict = callback(user, &daqhdr, data);
-								if (verdict >= MAX_DAQ_VERDICT)
-									verdict = DAQ_VERDICT_PASS;
-								dpdk_intf->stats.verdicts[verdict]++;
-								verdict = verdict_translation_table[verdict];
-							}
-							dpdk_intf->stats.packets_received++;
-							c++;
+                            if (callback)
+                            {
+                                verdict = callback(user, &daqhdr, data);
+                                if (verdict >= MAX_DAQ_VERDICT)
+                                    verdict = DAQ_VERDICT_PASS;
+                                dpdk_intf->stats.verdicts[verdict]++;
+                                verdict = verdict_translation_table[verdict];
+                            }
+                            dpdk_intf->stats.packets_received++;
+                            c++;
 
-					    } while (rte_pktmbuf_batch_get_next(bufs[i], &pkt, &ctrl));
+                        } while (rte_pktmbuf_batch_get_next(bufs[i], &pkt, &ctrl));
 
-						if (peer)
-						{
-							bufs[i]->pkt_len = bufs[i]->batch_size;
-							bufs[i]->data_len = bufs[i]->pkt_len;
-							rte_pktmbuf_prepend(bufs[i], sizeof(struct rte_mbuf_batch_pkt_hdr));
+                        if (peer)
+                        {
+                            bufs[i]->pkt_len = bufs[i]->batch_size;
+                            bufs[i]->data_len = bufs[i]->pkt_len;
+                            rte_pktmbuf_prepend(bufs[i], sizeof(struct rte_mbuf_batch_pkt_hdr));
 
-							tx_burst[tx_num] = bufs[i];
-							tx_num++;
-						}
-						else
-						{
-							rte_pktmbuf_free(bufs[i]);
-						}
-					}
+                            tx_burst[tx_num] = bufs[i];
+                            tx_num++;
+                        }
+                        else
+                        {
+                            rte_pktmbuf_free(bufs[i]);
+                        }
+                    }
                 }
 #else
                 {
@@ -1013,19 +1017,19 @@ send_packet:
 
             if (peer)
             {
-    			uint32_t nbidx = 0,i,cnt=0;
+                uint32_t nbidx = 0,i,cnt=0;
                 if (unlikely(tx_num == 0))
                     continue;
 
 #ifdef USE_RX_TX_LOCKING
                 pthread_mutex_lock(&tx_mutex[peer->port][peer_queue]);
 #endif
-				do
-				{
+                do
+                {
                     uint16_t nb_tx;
                     nb_tx = rte_eth_tx_burst(peer->port, peer_queue, &tx_burst[nbidx], tx_num - nbidx);
                     nbidx += nb_tx;
-				} while (nbidx < tx_num && ++cnt < 100);
+                } while (nbidx < tx_num && ++cnt < 100);
 
 #ifdef USE_RX_TX_LOCKING
                 pthread_mutex_unlock(&tx_mutex[peer->port][peer_queue]);
@@ -1045,7 +1049,7 @@ send_packet:
                         rte_pktmbuf_free(tx_burst[i]);
                     }
                 }
-				sent_one = 1;
+                sent_one = 1;
             }
         }
 
@@ -1284,5 +1288,5 @@ const DAQ_Module_t dpdk_daq_module_data =
     /* .hup_apply = */ NULL,
     /* .hup_post = */ NULL,
     /* .dp_add_dc = */ NULL,
-	/* .query_flow = */ NULL
+    /* .query_flow = */ NULL
 };

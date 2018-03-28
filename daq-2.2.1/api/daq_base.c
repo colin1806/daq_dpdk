@@ -161,6 +161,7 @@ DAQ_LINKAGE const DAQ_Module_t *daq_find_module(const char *name)
 
     for (node = module_list; node; node = node->next)
     {
+        //printf("name = %s, node->module->name = %s \n", name, node->module->name);
         if (!strcmp(name, node->module->name))
             return node->module;
     }

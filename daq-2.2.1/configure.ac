@@ -125,6 +125,7 @@ AC_ARG_WITH(dpdk_libraries,
 
 if test "x$with_dpdk_libraries" != "xno"; then
     DPDK_LDFLAGS="-L${with_dpdk_libraries}"
+    DPDK_LIBS="-Wl,--whole-archive -ldpdk -Wl,--no-whole-archive"
 fi
 
 DEFAULT_ENABLE=yes
@@ -160,7 +161,7 @@ AC_ARG_ENABLE(dpdk-module,
 if test "$enable_dpdk_module" = yes; then
     AC_CHECK_HEADER([rte_config.h], [], [enable_dpdk_module=no])
     if test "$enable_dpdk_module" = yes; then
-        STATIC_LIBS="${STATIC_LIBS} -lsfbpf ${DPDK_LDFLAGS} -ldpdk -lpthread"
+        STATIC_LIBS="${STATIC_LIBS} -lsfbpf ${DPDK_LDFLAGS} ${DPDK_LIBS} -lpthread"
         CFLAGS="${CFLAGS} -std=gnu99 -Wno-pedantic"
     fi
 fi
